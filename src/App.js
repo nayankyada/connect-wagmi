@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import "./style/index.css";
-import createContract from "./contract";
+import abi from "./abi";
 import {
   useConnect,
   useAccount,
@@ -8,45 +8,64 @@ import {
   useEnsAvatar,
   useEnsName,
   useNetwork,
+  useContractWrite,
   useBalance,
 } from "wagmi";
-
+import { useNFTDrop } from "@thirdweb-dev/react";
+import web3 from "web3";
+import NFTPage from "./NFTPage";
 function App() {
   const [errorMessage, setErrorMessage] = useState("");
-  const {
-    activeChain,
-    chains,
-    error: networkError,
-    isLoading,
-    pendingChainId,
-    switchNetwork,
-  } = useNetwork();
-  const {
-    activeConnector,
-    connect,
-    connectors,
-    error,
-    isConnecting,
-    pendingConnector,
-  } = useConnect({
-   
-  });
+  const { activeChain, switchNetwork } = useNetwork();
+  const [ownedNFT, setOwnedNFT] = useState([]);
+  const { connect, connectors, isConnecting, pendingConnector } = useConnect();
+  const nftDrop = useNFTDrop("0xFb96438b418cB146133Bcb1B40E3A623b02a8D92");
 
   const { data: account } = useAccount();
-  const { data: balance } = useBalance({addressOrName:account?.address,watch:true});
+  const { data: balance } = useBalance({
+    addressOrName: account?.address,
+  });
 
-  const { data: ensAvatar } = useEnsAvatar({ addressOrName: account?.address });
-  const { data: ensName } = useEnsName({ address: account?.address });
   const { disconnect } = useDisconnect();
+  const { write: mintApe } = useContractWrite(
+    {
+      addressOrName: "0x1F62AaBFa4aD4A5D782AF0cE0aBfF990ABf130E1",
+      contractInterface: abi,
+    },
+    "safeMint"
+  );
   useEffect(() => {
     if (account && activeChain?.id !== 4) {
       setErrorMessage("Please Connect With Rinkeby Network");
-    }
-    else{
-      setErrorMessage("")
+    } else {
+      setErrorMessage("");
     }
   }, [activeChain]);
+  const mintPig = () => {
+    const quantity = 1; // how many unique NFTs you want to claim
+    nftDrop
+      .claimTo(account?.address, quantity)
+      .then((d) => console.log(d))
+      .catch((e) => console.log(e));
+  };
+  const getMintedNFT = () => {
+    nftDrop.getOwned(account?.address).then((d) => {
+      // setOwnedNFT(d);
+      console.log(d);
+    }).catch(e => console.log(e))
+  };
+  // useEffect(() => {
+  //   if(account?.address){
+  //     nftDrop.getOwned(account?.address).then((d) => {
+  //       setOwnedNFT(d);
+  //       console.log(d);
+  //     });
+  //   }
+  //   else{
+  //     setOwnedNFT([])
+  //   }
 
+  // }, [account?.address]);
   return (
     <div className="App">
       <div className="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -70,7 +89,12 @@ function App() {
                     {errorMessage}
                   </h3>
                   {"account" && (
-                    <button onClick={() => {switchNetwork(4)}} className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <button
+                      onClick={() => {
+                        switchNetwork(4);
+                      }}
+                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
                       Connect With Rinkeby
                     </button>
                   )}
@@ -92,24 +116,45 @@ function App() {
                 <dd className="mt-1 text-xl font-semibold text-gray-900">
                   {balance && balance.formatted} ETH
                 </dd>
-                <button onClick={disconnect} className="mt-6 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <button
+                  onClick={disconnect}
+                  className="mt-6 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
                   Disconnect Wallet
                 </button>
               </div>
               <div className="bg-white py-4 px-4 mt-6 shadow sm:rounded-lg sm:px-10">
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-center space-x-4 items-center">
                     <button
+                      onClick={() => {
+                        mintApe({
+                          args: [account.address],
+                          overrides: {
+                            from: account?.address,
+                            gasLimit: "300000",
+                            value: web3.utils.toWei("0.01", "ether"),
+                          },
+                        });
+                      }}
                       type="button"
-                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className=" flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       Mint Bored Mutant ape
                     </button>
                     <button
+                      onClick={mintPig}
                       type="button"
-                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className=" flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                       Mint Pig
+                    </button>
+                    <button
+                      onClick={getMintedNFT}
+                      type="button"
+                      className=" flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      getMintedNFT
                     </button>
                   </div>
                 </div>
@@ -134,7 +179,10 @@ function App() {
           ) : null}
         </div>
       </div>
-      {account && account.address}
+
+      {/* {account?.address && ownedNFT.length > 0 && (
+        <NFTPage ownedNFT={ownedNFT} />
+      )} */}
     </div>
   );
 }
