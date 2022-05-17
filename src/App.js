@@ -5,8 +5,6 @@ import {
   useConnect,
   useAccount,
   useDisconnect,
-  useEnsAvatar,
-  useEnsName,
   useNetwork,
   useContractWrite,
   useBalance,
@@ -19,7 +17,7 @@ function App() {
   const { activeChain, switchNetwork } = useNetwork();
   const [ownedNFT, setOwnedNFT] = useState([]);
   const { connect, connectors, isConnecting, pendingConnector } = useConnect();
-  const nftDrop = useNFTDrop("0xFb96438b418cB146133Bcb1B40E3A623b02a8D92");
+  const nftDrop = useNFTDrop("0x310dE633632f53492791b59206DdA7aF08A909fC");
 
   const { data: account } = useAccount();
   const { data: balance } = useBalance({
@@ -49,10 +47,13 @@ function App() {
       .catch((e) => console.log(e));
   };
   const getMintedNFT = () => {
-    nftDrop.getOwned(account?.address).then((d) => {
-      // setOwnedNFT(d);
-      console.log(d);
-    }).catch(e => console.log(e))
+    nftDrop
+      .getAllClaimed(account?.address)
+      .then((d) => {
+        setOwnedNFT(d);
+        console.log(d);
+      })
+      .catch((e) => console.log(e));
   };
   // useEffect(() => {
   //   if(account?.address){
@@ -180,9 +181,9 @@ function App() {
         </div>
       </div>
 
-      {/* {account?.address && ownedNFT.length > 0 && (
+      {account?.address && ownedNFT.length > 0 && (
         <NFTPage ownedNFT={ownedNFT} />
-      )} */}
+      )}
     </div>
   );
 }

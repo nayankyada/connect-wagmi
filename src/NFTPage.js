@@ -13,8 +13,8 @@ function NFTPage(props) {
               <div key={nft.id} className="group relative">
                 <div className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
                   <img
-                    src={nft.image}
-                    alt={nft.name}
+                    src={nft.metadata.image}
+                    alt={nft.metadata.name}
                     className="w-full h-full object-center object-cover lg:w-full lg:h-full"
                   />
                 </div>
@@ -22,7 +22,7 @@ function NFTPage(props) {
                   <div>
                     <h3 className="text-sm text-gray-700">
                         <span aria-hidden="true" className="absolute inset-0" />
-                        {nft.name}
+                        {nft.metadata.name}
                     </h3>
                     
                   </div>
