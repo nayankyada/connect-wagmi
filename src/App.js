@@ -8,6 +8,7 @@ import {
   useNetwork,
   useContractWrite,
   useBalance,
+  useSigner,
 } from "wagmi";
 import { useNFTDrop } from "@thirdweb-dev/react";
 import web3 from "web3";
@@ -16,6 +17,7 @@ function App() {
   const [errorMessage, setErrorMessage] = useState("");
   const { activeChain, switchNetwork } = useNetwork();
   const [ownedNFT, setOwnedNFT] = useState([]);
+  const {} = useSigner()
   const { connect, connectors, isConnecting, pendingConnector } = useConnect();
   const nftDrop = useNFTDrop("0x310dE633632f53492791b59206DdA7aF08A909fC");
 
@@ -55,18 +57,7 @@ function App() {
       })
       .catch((e) => console.log(e));
   };
-  // useEffect(() => {
-  //   if(account?.address){
-  //     nftDrop.getOwned(account?.address).then((d) => {
-  //       setOwnedNFT(d);
-  //       console.log(d);
-  //     });
-  //   }
-  //   else{
-  //     setOwnedNFT([])
-  //   }
 
-  // }, [account?.address]);
   return (
     <div className="App">
       <div className="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
